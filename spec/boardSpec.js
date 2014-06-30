@@ -4,7 +4,7 @@ describe("Connect4.Board", function () {
   var board;
 
   beforeEach(function () {
-    board = new ConnectFour.Board(game_width, game_height);
+    board = new ConnectFour.Board({columns: game_width, rows: game_height});
   });
 
   describe("Setting up the board", function () {
@@ -25,29 +25,29 @@ describe("Connect4.Board", function () {
     });
   });
 
-  describe("Board#getValueAt", function () {
-    it("returns the value at a given position", function () {
+  describe("Board#getColorAt", function () {
+    it("returns the color at a given position", function () {
       var position = {row: 4, column: 3};
-      expect(board.getValueAt(position)).toBe(ConnectFour.DEFAULT_VALUE);
+      expect(board.getColorAt(position)).toBe(ConnectFour.EMPTY);
     });
   });
 
-  describe("Board.setValueAt", function () {
-    it("changes the value at a position on the board", function () {
+  describe("Board#setColorAt", function () {
+    it("changes the color at a position on the board", function () {
       var position = {row: 4, column: 3};
-      board.setValueAt(position, 1);
-      expect(board.getValueAt(position)).toBe(1);
+      board.setColorAt(position, "red");
+      expect(board.getColorAt(position)).toBe(ConnectFour.RED);
     });
 
-    it("returns the value set", function () {
+    it("returns the color set", function () {
       var position = {row: 3, column: 3};
-      expect(board.setValueAt(position, 1)).toEqual(1);
+      expect(board.setColorAt(position, "red")).toEqual("red");
     });
 
     it("throws an error if the position is not empty", function () {
       var position = {row: 4, column: 3};
-      board.setValueAt(position, 1);
-      expect( function () { return board.setValueAt(position, 1); }).toThrow();
+      board.setColorAt(position, "black");
+      expect( function () { return board.setColorAt(position, "red"); }).toThrow();
     });
   });
 
@@ -58,7 +58,7 @@ describe("Connect4.Board", function () {
 
     it("returns false if a position is not open", function () {
       var position = {row: 2, column: 2};
-      board.setValueAt(position, 1);
+      board.setColorAt(position, "red");
       expect(board.isEmptyAt(position)).toBe(false);
     });
   });

@@ -1,0 +1,115 @@
+@import url(http://fonts.googleapis.com/css?family=Oswald);
+@import url(http://fonts.googleapis.com/css?family=Nova+Square);
+
+// Colors
+$blue        : #4F8CC4;
+$yellow      : #FFFF00;
+$red         : #FF0000;
+$black       : #000000;
+
+
+// Fonts
+$font-stack  : Nova Square, Oswald, Helvetica, sans-serif;
+
+body {
+  background-color : $blue;
+  font-family      : $font-stack;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2.5em;
+}
+
+.subtitle {
+  font-size: 60%;
+  font-style: italic;
+}
+
+#dialog, #notice {
+  font-size: 2em;
+  margin: 15px;
+  text-align: center;
+}
+
+
+// Geometric constants
+$diameter          : 80px;
+$circ-margin       : 5px;
+$gameboard-padding : 15px;
+
+
+// Game board styling
+#gameboard {
+  width            : 7*($diameter + 2*$circ-margin);
+  height           : 6*$diameter + 2*$gameboard-padding;
+  padding          : $gameboard-padding;
+  border-radius    : 10px;
+  margin           : 0 auto;
+  background-color : $yellow;
+}
+
+.column {
+  width            : $diameter + 2*$circ-margin;
+  float            : left;
+  border-radius    : 10px;
+}
+
+.column:hover {
+  background-color : darken($yellow, 10%);
+}
+
+.cell {
+  width            : $diameter;
+  height           : $diameter;
+  margin           : $circ-margin;
+  border-radius    : $diameter/2;
+  background-color : $blue;
+}
+
+.red {
+  background-color : $red;
+}
+
+.black {
+  background-color : $black;
+}
+
+
+// Scoreboard styling
+#scoreboard {
+  position : absolute;
+  bottom   : 0px;
+  left     : 0px;
+  padding  : 15px;
+  z-index  : 0;
+
+  h2 {
+    font-size : 2em;
+    margin    : 0px;
+  }
+
+  table {
+    font-size  : 1.5em;
+    text-align : center;
+
+    td {
+      width : 70px;
+    }
+  }
+}
+
+
+// Modal dialog
+#modal {
+  position         : absolute;
+  top              : 0px;
+  bottom           : 0px;
+  left             : 0px;
+  right            : 0px;
+  padding          : 200px;
+  text-align       : center;
+  font-size        : 5em;
+  z-index          : 1;
+  background-color : rgba(200, 200, 200, 0.8);
+}
