@@ -5,56 +5,48 @@
   var ConnectFour = window.ConnectFour = (window.ConnectFour || {});
 
   ConnectFour.MARKERS = {
-    black: 1,
-    red: -1,
-    empty: 0
+    black : 1,
+    red   : -1,
+    empty : 0
   }
 
   var Board = ConnectFour.Board = function (options) {
     var col;
     this.width  = options.columns;
     this.height = options.rows;
+
+    if (options.cells) {
+      // Allow dependency injection for testing purposes
+      this.cells = options.cells; 
+      return;
+    }
+
     this.cells = [];
 
     for (var x = 0; x < this.width; x++) {
       col = [];
       for (var y = 0; y < this.height; y++) {
-        col.push(ConnectFour.EMPTY);
+        col.push(ConnectFour.MARKERS.empty);
       }
       this.cells.push(col);
     }
   };
 
-  Board.prototype.columns = function () {
-    return this.cells;
-  };
-
-  Board.prototype.rows = function () {
-    var numberColumns = this.cells[0].length;
-    var columns = [];
-
-    function addRow (row) {
-      columns[r].push(row[r]);
-    }
-
-    for (var r = 0; r < numberColumns; r++) {
-      columns.push([]);
-      this.cells.forEach(addRow);
-    }
-
-    return columns;
-  };
-
   Board.prototype.moveAtPosition = function (options) {
     // Returns position of move marked on board, or 
-    // undefined if a move is unavailable in the selected column.
-    var color = options.color;
-    var columnArr = this.columns()[options.column];
+    // undefined if a move is unavailable.  The loop in this
+    // method has the effect of finding the lowest unoccupied
+    // position in the selected column. 
+
+    var color    = options.color;
+    var position = options.position;
+
+    var columnArr = this.cells[position.column];
 
     for (var i = columnArr.length-1; i >= 0; i--) {
-      if (columnArr[i] === ConnectFour.EMPTY) {
+      if (columnArr[i] === ConnectFour.MARKERS.empty) {
         columnArr[i] = ConnectFour.MARKERS[color];
-        return {column: options.column, row: i};
+        return {column: position.column, row: i};
       }
     }
 
@@ -71,25 +63,32 @@
 
   Board.prototype.setColorAt = function (position, color) {
     var currentValue = this.getColorAt(position);
-    if (currentValue !== ConnectFour.EMPTY) {
+    if (currentValue !== ConnectFour.MARKERS.empty) {
       throw "That position is already taken.";
     }
 
     if (color === "red") {
-      this.cells[position.row][position.column] = ConnectFour.MARKERS.red;
+      this.cells[position.column][position.row] = ConnectFour.MARKERS.red;
     } else {
-      this.cells[position.row][position.column] = ConnectFour.MARKERS.black;
+      this.cells[position.column][position.row] = ConnectFour.MARKERS.black;
     }
 
     return color;
   };
 
   Board.prototype.columnAtPosition = function (position) {
-    return this.columns()[position.column];
+    return this.cells[position.column];
   };
 
   Board.prototype.rowAtPosition = function (position) {
-    return this.rows()[position.row];
+    var targetRowIndex = position.row;
+    var targetRow = [];
+
+    this.cells.forEach( function (column) {
+      targetRow.push(column[targetRowIndex]);
+    });
+
+    return targetRow;
   };
 
   Board.prototype.diagonal1AtPosition = function (position) {
@@ -148,14 +147,17 @@
     return joined;
   };
 
-  Board.prototype.availableMoves = function () {
+  Board.prototype.availableMovesCount = function () {
     var emptySpaces = 0;
-
-    this.cells.forEach( function (cell) {
-      if (cell === ConnectFour.EMPTY) {
-        emptySpaces += 1;
-      }
+    debugger;
+    this.cells.forEach( function (column) {
+      column.forEach( function (cell) {
+        if (cell === ConnectFour.MARKERS.empty) {
+          emptySpaces += 1;
+        }
+      });
     });
-      return emptySpaces;
+
+    return emptySpaces;
   }
 })();

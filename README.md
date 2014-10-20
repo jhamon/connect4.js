@@ -12,6 +12,10 @@ All of my code is namespaced under `ConnectFour`.  In the namespace, there are t
 
 All important game state lives in objects and not the DOM, making it easy to reset the game for another play after a win condition or gameover condition is met.  This separation of the data from the view is critical in building single page applications that are easy to extend and modify.  Although I didn't use a frontend framework in this project, I probably would if I needed to add additional subviews.
 
+## Testing
+
+Unit-tests have been written for much of the game's logic.  These tests make use of a testing technique called **dependency-injection**.  The main constructor functions in my game (`Connect4.Board` and `Connect4.Game`) have been written to accept a configuration options object that allows us to pass in specific configuration for testing. For example, while testing my Game objects, it is sometimes useful to specify a board for testing in a particular state.
+
 ## Third-party tools and libraries
 
 This project uses [jQuery](http://jquery.com/) library to set click event listeners and add CSS classes to appropriate DOM elements as the game progresses. 

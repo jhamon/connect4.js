@@ -8,7 +8,7 @@
     this.game = new ConnectFour.Game();
 
     // Cache DOM elements.
-    this.$modal     = $("#modal");
+    this.$modal      = $("#modal");
     this.$dialogBox  = $("#dialog");
     this.$scoreboard = $("#scoreboard");
     
@@ -82,8 +82,8 @@
     view.$modal.hide();
     view.$modal.text(str);
     view.$modal.slideDown(300);
-    
-    // Hide the win notice after a few seconds
+
+    // Hide the win modal after a few seconds
     window.setTimeout( function () {
       view.$modal.slideUp();
       view.reset();
@@ -93,7 +93,6 @@
   $(document).ready( function () {
     var view = new ConnectFour.View();
     view.setColumnListeners();
-    console.log('This is ConnectFour by Jen Hamon, jen@hamon.io. You should probably hire me ;)')
+    console.log('This is ConnectFour by Jen Hamon, jen@hamon.io. Hire me ;)')
   });
-
-  })();
+})();
