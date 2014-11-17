@@ -4,17 +4,15 @@
   // Top-level namespace: ConnectFour
   var ConnectFour = window.ConnectFour = (window.ConnectFour || {});
 
+  ConnectFour.WIDTH  = 7;
+  ConnectFour.HEIGHT = 6;
+
   ConnectFour.MARKERS = {
-    black : 1,
-    red   : -1,
-    empty : 0
+    black : "r",
+    red   : "b",
   }
 
   var Board = ConnectFour.Board = function (options) {
-    var col;
-    this.width  = options.columns;
-    this.height = options.rows;
-
     if (options.cells) {
       // Allow dependency injection for testing purposes
       this.cells = options.cells; 
@@ -22,14 +20,28 @@
     }
 
     this.cells = [];
-
-    for (var x = 0; x < this.width; x++) {
-      col = [];
-      for (var y = 0; y < this.height; y++) {
-        col.push(ConnectFour.MARKERS.empty);
-      }
-      this.cells.push(col);
+    for (var i = 0; i < ConnectFour.WIDTH; i++) { 
+      this.cells.push([]);
     }
+
+    return this;
+  };
+
+  Board.prototype.print = function () {
+    var lines = []
+    for (var h = ConnectFour.HEIGHT+1; h > 1; h--) {
+      var line = "";
+      this.cells.map(function (col) {
+        console.log("Mapping with h: " + h);
+        console.log("Column is: " + col)
+        var currentEl = col[h];
+        var show = currentEl === undefined ? "x" : currentEl;
+        line += show;
+      });
+      lines.push(line);
+    }
+
+    console.log(lines.join("\n"));
   };
 
   Board.prototype.moveAtPosition = function (options) {
@@ -38,42 +50,20 @@
     // method has the effect of finding the lowest unoccupied
     // position in the selected column. 
 
-    var color    = options.color;
-    var position = options.position;
+    var color          = options.color;
+    var columnIndex    = options.position.column;
+    var columnContents = this.cells[columnIndex];
 
-    var columnArr = this.cells[position.column];
-
-    for (var i = columnArr.length-1; i >= 0; i--) {
-      if (columnArr[i] === ConnectFour.MARKERS.empty) {
-        columnArr[i] = ConnectFour.MARKERS[color];
-        return {column: position.column, row: i};
-      }
+    if (columnContents.length < ConnectFour.HEIGHT) {
+      var rowIndex = columnContents.push(ConnectFour.MARKERS[color]);
+      return { column: columnIndex, row: rowIndex };
     }
 
     return undefined;
   };
 
-  Board.prototype.isEmptyAt = function (position) {
-    return this.getColorAt(position) === ConnectFour.MARKERS.empty;
-  };
-
   Board.prototype.getColorAt = function (position) {
     return this.cells[position.column][position.row];
-  };
-
-  Board.prototype.setColorAt = function (position, color) {
-    var currentValue = this.getColorAt(position);
-    if (currentValue !== ConnectFour.MARKERS.empty) {
-      throw "That position is already taken.";
-    }
-
-    if (color === "red") {
-      this.cells[position.column][position.row] = ConnectFour.MARKERS.red;
-    } else {
-      this.cells[position.column][position.row] = ConnectFour.MARKERS.black;
-    }
-
-    return color;
   };
 
   Board.prototype.columnAtPosition = function (position) {
@@ -82,82 +72,147 @@
 
   Board.prototype.rowAtPosition = function (position) {
     var targetRowIndex = position.row;
-    var targetRow = [];
 
-    this.cells.forEach( function (column) {
-      targetRow.push(column[targetRowIndex]);
+    return this.cells.map( function (column) {
+      return column[targetRowIndex];
     });
-
-    return targetRow;
   };
 
-  Board.prototype.diagonal1AtPosition = function (position) {
-    // Returns an array of elements along the "positive slope"
-    // diagonal passing through a given position.
-    var upAndToRight = [this.getColorAt(position)];
-    var downAndToLeft = [];
+  Board.prototype._diagonalCount = function (column, column_incrementer) {
+    // Counts the connected elements along a slope passing through the last
+    // move of the given column.
+    //
+    // column should be the index of the column to start with.
+    //
+    // column_incrementer is a function that should take the column index and
+    // increment or decrement depending on which diagonal direction we are counting.
+    var startIndex = this.cells[column].length - 1;
+    var startColor = this.cells[column][startIndex];
+    var count      = 0;
 
-    var x = position.column;
-    var y = position.row;
+    var colIndex = column;
+    var rowIndex = this.cells[column].length-1;
 
-    while (x < this.width-1 && y > 0) {
-      x += 1;
-      y -= 1;
-      upAndToRight.push(this.getColorAt({column: x, row: y}));
+    while (validRow(rowIndex) && validColumn(colIndex)) {
+
+      if (this.cells[colIndex][rowIndex] === startColor) {
+        count += 1;
+        colIndex = column_incrementer(colIndex);
+        rowIndex -= 1;
+      } else {
+        // if we reach a color different than the one we began with, we break.
+        // We're only interested in the number of connected components.
+        break;
+      }
     }
 
-    x = position.column;
-    y = position.row;
-
-    while (x > 0 && y < this.height-1) {
-      x -= 1;
-      y += 1;
-      downAndToLeft.unshift( this.getColorAt({column: x, row: y}) );
-    }
-
-    var joined = downAndToLeft.concat(upAndToRight);
-    return joined;
+    return count;
   };
 
-  Board.prototype.diagonal2AtPosition = function (position) {
-    // Returns an array of elements along the "negative slope"
-    // diagonal passing through a given position.
-    var upAndToLeft = [this.getColorAt(position)];
-    var downAndToRight = [];
+  function validRow(rowIndex) {
+    return rowIndex < ConnectFour.HEIGHT && rowIndex >= 0;
+  }
 
-    var x = position.column;
-    var y = position.row;
+  function validColumn(colIndex) {
+    return colIndex < ConnectFour.WIDTH && colIndex >= 0;
+  }
 
-    while (x > 0 && y > 0) {
-      x -= 1;
-      y -= 1;
-      upAndToLeft.push(this.getColorAt({column: x, row: y}));
+  Board.prototype.firstDiagonalCount = function (column) {
+    // Counts the connected components along the negative slope 
+    // diagonal beginning at the top of the given column.
+    //
+    // For the board below:
+    //    firstDiagonalCount(3) // 2
+    //    firstDiagonalCount(1) // 3 
+    //    firstDiagonalCount(0) // 1
+    //    firstDiagonalCount(6) // 2
+    //
+    // r b r b     r
+    // r b b r b r b
+    // r b r b b r r
+    // 0 1 2 3 4 5 6 <--- column
+    return this._diagonalCount(column, function (c) { return c += 1; })
+  }
+
+  Board.prototype.secondDiagonalCount = function (column) {
+    // Counts the connected components along the positive slope 
+    // diagonal beginning at the top of the given column.
+    //
+    // For the board below:
+    //    secondDiagonalCount(3) // 3
+    //    secondDiagonalCount(1) // 1 
+    //    secondDiagonalCount(0) // 1
+    //    secondDiagonalCount(6) // 2
+    //
+    // r b r b     r
+    // r b b r b r b
+    // r b r b b r r
+    // 0 1 2 3 4 5 6 <--- column
+    return this._diagonalCount(column, function (c) { return c -= 1; });
+  }
+
+  Board.prototype.columnCount = function (column) {
+    // Count the places connected columnwise to the last move in a given column.
+    //
+    // For the board below:
+    //    columnCount(0) // 1 (one red)
+    //    columnCount(1) // 3 (three black)
+    //    columnCount(4) // 2 (two black)
+    //
+    // r b r   b r 
+    // b b r r b r
+    // b b b r r b
+    // 0 1 2 3 4 5 6 <--- column
+    var col          = this.cells[column];
+    var currentIndex = col.length - 1;
+    var count        = 0;
+
+    while (validRow(currentIndex) && col[currentIndex] === col[-1]) {
+      count++;
+      currentIndex--;
     }
 
-    x = position.column;
-    y = position.row;
+    return count;
+  }
 
-    while (x < this.width-1 && y < this.height-1) {
-      x += 1;
-      y += 1;
-      downAndToRight.unshift( this.getColorAt({column: x, row: y}) );
+  Board.prototype.rowCount = function (column) {
+    // Count the places connected row-wise to the last move in a given column
+    // For the board below:
+    //    rowCount(0) // 3 (three red)
+    //    rowCount(1) // 3 (three red)
+    //    rowCount(3) // 2 (two red)
+    //    rowCount(4) // 1 (one black)
+    //
+    // r r r   b r 
+    // b b r r b r
+    // b b b r r b
+    // 0 1 2 3 4 5 6 <--- column
+    var rowIndex = this.cells[column].length - 1;
+    var row      = this.cells.map( function (col) { return col[rowIndex] });
+    var count    = 0;
+
+    var colIndex = column;
+    // First count to the left
+    while (validColumn(colIndex) && row[colIndex] === row[column]) {
+      count++;
+      colIndex--;
     }
 
-    var joined = downAndToRight.concat(upAndToLeft);
-    return joined;
-  };
+    colIndex = column + 1;
+    // Then count to the right
+    while (validColumn(colIndex) && row[colIndex] === row[column]) {
+      count++;
+      colIndex++;
+    }
+
+    return count;
+  }
 
   Board.prototype.availableMovesCount = function () {
     var emptySpaces = 0;
-    debugger;
-    this.cells.forEach( function (column) {
-      column.forEach( function (cell) {
-        if (cell === ConnectFour.MARKERS.empty) {
-          emptySpaces += 1;
-        }
-      });
-    });
 
-    return emptySpaces;
-  }
+    return this.cells.reduce( function (sum, column) {
+      return sum + (ConnectFour.HEIGHT - column.length);
+   }, 0);
+  };
 })();

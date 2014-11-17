@@ -1,4 +1,4 @@
-(function () {
+// (function () {
   "use strict";
 
   // Top-level namespace: ConnectFour
@@ -14,6 +14,8 @@
     
     // Scoreboard
     this.scores      = {"red": 0, "black": 0};
+
+    this.setColumnListeners();
   };
 
   View.prototype.markMove = function (position) {
@@ -58,11 +60,7 @@
 
   View.prototype.updateScores = function () {
     // Increase the score of the current color.
-    if (this.game.currentColor === "red") {
-      this.scores.red += 1;
-    } else {
-      this.scores.black += 1;
-    }
+    this.scores[this.game.currentColor] += 1;
   }
 
   View.prototype.displayScores = function () {
@@ -90,9 +88,11 @@
     }, 2000);
   }
 
+  var view;
+
   $(document).ready( function () {
-    var view = new ConnectFour.View();
-    view.setColumnListeners();
+    // var view = new ConnectFour.View();
+    view = new ConnectFour.View();
     console.log('This is ConnectFour by Jen Hamon, jen@hamon.io. Hire me ;)')
   });
-})();
+// })();

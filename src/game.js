@@ -28,14 +28,17 @@
     });
   };
 
+  Game.prototype.play = function (position) {
+    this.makeMove(position);
+  };
+
   Game.prototype.checkIfGameWon = function (position) {
     // To evaluate whether a win condition has been triggered
     // we need only consider the row, column, and diagonals
     // that contain the last played move.
     if (this._columnWinCondition(position) 
-          || this._rowWinCondition(position) 
-          || this._diagonalWinCondition(position)
-          ) {
+        || this._rowWinCondition(position) 
+        || this._diagonalWinCondition(position)) {
       return true;
     }
 
@@ -53,19 +56,15 @@
 
   Game.prototype._rowWinCondition = function (position) {
     // Returns true if a connect four has been made horizontally
-    return this._fourInARow(this.board.rowAtPosition(position));
+    return this.board.rowCount(position.column) === 4;
   };
 
   Game.prototype._diagonalWinCondition = function (position) {
     // Returns true if a connect four has been made along either
     // of the diagonals.
-    var diagonal1 = this.board.diagonal1AtPosition(position);
-    if (this._fourInARow(diagonal1)) {
-      return true;
-    }
-
-    var diagonal2 = this.board.diagonal2AtPosition(position);
-    if (this._fourInARow(diagonal2)) {
+    var column = position.column;
+    if (this.board.firstDiagonalCount(column) === 4 ||
+        this.board.secondDiagonalCount(column) === 4) {
       return true;
     }
 
